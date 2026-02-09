@@ -56,11 +56,11 @@ const formSchema = z
   .refine(
     (data) => {
       const countryData = Country.getAllCountries().find(
-        (c) => c.name === data.country
+        (c) => c.name === data.country,
       );
       const stateData = countryData
         ? State.getStatesOfCountry(countryData.isoCode).find(
-            (s) => s.name === data.state
+            (s) => s.name === data.state,
           )
         : null;
 
@@ -74,7 +74,7 @@ const formSchema = z
     {
       path: ["city"],
       message: "Please select your city",
-    }
+    },
   );
 
 function CheckoutPageContent() {
@@ -97,7 +97,7 @@ function CheckoutPageContent() {
   const [submitting, setSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
-    null
+    null,
   );
   const [, setShippingError] = useState<string | null>(null);
 
@@ -154,7 +154,7 @@ function CheckoutPageContent() {
         totalWidth: 0,
         totalLength: 0,
         totalHeight: 0,
-      }
+      },
     );
   }, [items]);
 
@@ -271,18 +271,18 @@ function CheckoutPageContent() {
 
         if (lowestRate) setSelectedServiceId(lowestRate.serviceId);
         setShippingFee(
-          lowestRate ? parseFloat(lowestRate.totalRate.toFixed(2)) : 0
+          lowestRate ? parseFloat(lowestRate.totalRate.toFixed(2)) : 0,
         );
       } catch (err) {
         console.error("EasyParcel rate check error:", err);
         setShippingError(
-          "Unable to calculate shipping. Please check your address."
+          "Unable to calculate shipping. Please check your address.",
         );
       } finally {
         setIsCalculating(false);
       }
     },
-    [parcelMetrics, setShippingFee, setSelectedServiceId, states]
+    [parcelMetrics, setShippingFee, setSelectedServiceId, states],
   );
 
   useEffect(() => {
@@ -300,7 +300,7 @@ function CheckoutPageContent() {
       calculateEasyParcelShippingRate(
         watchedPostcode,
         watchedState,
-        watchedCountryISO
+        watchedCountryISO,
       );
     }, 400);
 
@@ -316,7 +316,7 @@ function CheckoutPageContent() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!selectedServiceId) {
       setErrorMessage(
-        "Please select a shipping service before placing your order."
+        "Please select a shipping service before placing your order.",
       );
       return;
     }
@@ -326,7 +326,7 @@ function CheckoutPageContent() {
 
     try {
       const selectedRate = availableRatesRef.current.find(
-        (response) => response.serviceId === selectedServiceId
+        (response) => response.serviceId === selectedServiceId,
       );
 
       const payload = {
