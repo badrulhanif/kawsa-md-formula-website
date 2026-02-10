@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { z } from "zod";
@@ -16,7 +15,6 @@ import { useForm } from "react-hook-form";
 import ReactCountryFlag from "react-country-flag";
 import { Country, State, City, IState, ICity } from "country-state-city";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -63,12 +61,10 @@ const formSchema = z
             (s) => s.name === data.state,
           )
         : null;
-
       const cities =
         countryData && stateData
           ? City.getCitiesOfState(countryData.isoCode, stateData.isoCode)
           : [];
-
       return !(cities.length > 0 && !data.city);
     },
     {
@@ -80,14 +76,12 @@ const formSchema = z
 function CheckoutPageContent() {
   const { items, subTotalPrice, shippingFee, totalPrice, setShippingFee } =
     useCheckout();
-
   const searchParams = useSearchParams();
   const status = searchParams.get("status");
   const error = status === "error" || status === "failed";
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const rateRequestIdRef = useRef(0);
   const availableRatesRef = useRef<EasyParcelRateItem[]>([]);
-
   const [hydrated, setHydrated] = useState(false);
   const [states, setStates] = useState<IState[]>([]);
   const [cities, setCities] = useState<ICity[]>([]);
@@ -141,7 +135,6 @@ function CheckoutPageContent() {
         const width = Number(item.width) || 0;
         const length = Number(item.length) || 0;
         const height = Number(item.height) || 0;
-
         return {
           totalWeight: acc.totalWeight + weight * qty,
           totalWidth: Math.max(acc.totalWidth, Math.ceil(width)),
@@ -177,13 +170,11 @@ function CheckoutPageContent() {
   useEffect(() => {
     const countryData = allCountries.find((c) => c.name === country);
     const stateData = states.find((s) => s.name === selectedState);
-
     if (!countryData || !stateData) {
       setCities([]);
       setValue("city", "");
       return;
     }
-
     setCities(City.getCitiesOfState(countryData.isoCode, stateData.isoCode));
   }, [country, selectedState, states, allCountries, setValue]);
 
@@ -196,7 +187,6 @@ function CheckoutPageContent() {
       const requestId = ++rateRequestIdRef.current;
       setIsCalculating(true);
       setShippingError(null);
-
       try {
         if (
           !sendState ||
@@ -208,21 +198,17 @@ function CheckoutPageContent() {
           setSelectedServiceId(null);
           return;
         }
-
         if (!states.find((s) => s.name === sendState)) {
           setShippingFee(0);
           setSelectedServiceId(null);
           return;
         }
-
         const { totalWeight, totalWidth, totalLength, totalHeight } =
           parcelMetrics;
-
         if (totalWeight <= 0) {
           setIsCalculating(false);
           return;
         }
-
         const body = {
           pickPostcode: "81200",
           pickState: "Johor",
@@ -235,18 +221,14 @@ function CheckoutPageContent() {
           length: totalLength,
           height: totalHeight,
         };
-
         const response = await fetch("/api/easyparcel/rate-checking", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-
         if (requestId !== rateRequestIdRef.current) return;
-
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Rate check failed");
-
         const rates: EasyParcelRateItem[] = Array.isArray(data?.rates)
           ? data.rates
           : [];
@@ -255,23 +237,12 @@ function CheckoutPageContent() {
           setSelectedServiceId(null);
           return;
         }
-
         availableRatesRef.current = rates;
-        const lowestRate = rates.reduce<{
-          totalRate: number;
-          serviceId: string;
-        } | null>((priority, rate) => {
-          const price = Number(rate.shipmentTotalRates);
-          if (isNaN(price)) return priority;
-          if (!priority) return { serviceId: rate.serviceId, totalRate: price };
-          return price < priority.totalRate
-            ? { serviceId: rate.serviceId, totalRate: price }
-            : priority;
-        }, null);
 
-        if (lowestRate) setSelectedServiceId(lowestRate.serviceId);
+        const cheapestRate = rates[0];
+        setSelectedServiceId(cheapestRate.serviceId);
         setShippingFee(
-          lowestRate ? parseFloat(lowestRate.totalRate.toFixed(2)) : 0,
+          parseFloat(Number(cheapestRate.shipmentTotalRates).toFixed(2)),
         );
       } catch (err) {
         console.error("EasyParcel rate check error:", err);
@@ -295,7 +266,6 @@ function CheckoutPageContent() {
       setShippingFee(0);
       return;
     }
-
     const debounceTimer = setTimeout(() => {
       calculateEasyParcelShippingRate(
         watchedPostcode,
@@ -303,7 +273,6 @@ function CheckoutPageContent() {
         watchedCountryISO,
       );
     }, 400);
-
     return () => clearTimeout(debounceTimer);
   }, [
     watchedPostcode,
@@ -326,45 +295,39 @@ function CheckoutPageContent() {
 
     try {
       const selectedRate = availableRatesRef.current.find(
-        (response) => response.serviceId === selectedServiceId,
+        (r) => r.serviceId === selectedServiceId,
       );
 
       const payload = {
         fullName: values.fullName,
         email: values.email,
         phoneNumber: `${values.countryCode}${values.phoneNumber}`,
-
         addressLine1: values.addressLine1,
         addressLine2: values.addressLine2 || "",
         city: values.city || "",
         state: values.state,
         postcode: values.postcode,
         country: "MY",
-
         subTotalPrice,
         shippingFee,
         totalPrice,
-
         easyparcel: {
-          rateId: selectedRate?.rateId,
+          rateId: selectedRate?.rateId || "",
           serviceId: selectedServiceId,
-          serviceName: selectedRate?.serviceName,
-          courierId: selectedRate?.courierId,
-          courierName: selectedRate?.courierName,
+          serviceName: selectedRate?.serviceName || "",
+          courierId: selectedRate?.courierId || "",
+          courierName: selectedRate?.courierName || "",
         },
-
         items: items.map((item) => ({
           productId: item.productId,
           variantId: item.variantId || null,
           variantOptionId: item.variantOptionId || null,
           itemSrc: item.src,
           itemName: item.name,
-
           itemWeight: item.weight,
           itemWidth: item.width,
           itemLength: item.length,
           itemHeight: item.height,
-
           itemCurrency: "RM",
           itemUnitPrice: item.currentPrice ?? item.unitPrice,
           itemQuantity: item.quantity,
@@ -372,22 +335,44 @@ function CheckoutPageContent() {
         })),
       };
 
+      console.log("=== SUBMITTING ORDER ===");
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      console.log("Response status:", response.status);
 
-      if (!response.ok) throw new Error(data.error || "Order creation failed");
+      let data: { error?: string; checkout_url?: string; orderNumber?: string };
+      try {
+        data = await response.json();
+      } catch {
+        const text = await response.text();
+        console.error("Non-JSON response:", text);
+        throw new Error("Server error. Please try again.");
+      }
 
-      localStorage.setItem("lastOrderNumber", data.orderNumber);
+      console.log("Response data:", data);
 
+      if (!response.ok) {
+        throw new Error(data.error || "Order creation failed");
+      }
+
+      if (!data.checkout_url) {
+        throw new Error("No checkout URL received");
+      }
+
+      localStorage.setItem("lastOrderNumber", data.orderNumber || "");
       window.location.href = data.checkout_url;
       form.reset();
     } catch (error: unknown) {
       console.error("Checkout failed:", error);
+      const errorMsg =
+        error instanceof Error ? error.message : "An error occurred";
+      setErrorMessage(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -403,7 +388,7 @@ function CheckoutPageContent() {
             Nothing to checkout
           </h2>
           <p className="text-neutral-400">
-            Looks like you haven’t added any items to your cart.
+            Looks like you haven&apos;t added any items to your cart.
           </p>
           <Link
             href="/shop-our-products"
@@ -488,7 +473,6 @@ function CheckoutPageContent() {
                     </FormItem>
                   )}
                 />
-
                 <div className="flex flex-col sm:flex-row gap-6 sm:gap-4">
                   {/* Email */}
                   <FormField
@@ -515,7 +499,6 @@ function CheckoutPageContent() {
                       </FormItem>
                     )}
                   />
-
                   {/* PhoneNumber */}
                   <div className="space-y-1 flex-1">
                     <h2
@@ -554,10 +537,7 @@ function CheckoutPageContent() {
                                     <ReactCountryFlag
                                       countryCode="MY"
                                       svg
-                                      style={{
-                                        width: "20px",
-                                        height: "20px",
-                                      }}
+                                      style={{ width: "20px", height: "20px" }}
                                     />
                                     <span>Malaysia (+60)</span>
                                   </SelectItem>
@@ -568,10 +548,7 @@ function CheckoutPageContent() {
                                     <ReactCountryFlag
                                       countryCode="ID"
                                       svg
-                                      style={{
-                                        width: "20px",
-                                        height: "20px",
-                                      }}
+                                      style={{ width: "20px", height: "20px" }}
                                     />
                                     <span>Indonesia (+62)</span>
                                   </SelectItem>
@@ -582,10 +559,7 @@ function CheckoutPageContent() {
                                     <ReactCountryFlag
                                       countryCode="SG"
                                       svg
-                                      style={{
-                                        width: "20px",
-                                        height: "20px",
-                                      }}
+                                      style={{ width: "20px", height: "20px" }}
                                     />
                                     <span>Singapore (+65)</span>
                                   </SelectItem>
@@ -619,7 +593,6 @@ function CheckoutPageContent() {
                     )}
                   </div>
                 </div>
-
                 {/* Address */}
                 <div className="space-y-1 flex-1">
                   <h2
@@ -638,7 +611,6 @@ function CheckoutPageContent() {
                   </h2>
                   <div className="flex flex-col gap-2">
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                      {/* Address Line 1 */}
                       <FormField
                         control={form.control}
                         name="addressLine1"
@@ -654,8 +626,6 @@ function CheckoutPageContent() {
                           </FormItem>
                         )}
                       />
-
-                      {/* Address Line 2 */}
                       <FormField
                         control={form.control}
                         name="addressLine2"
@@ -672,9 +642,7 @@ function CheckoutPageContent() {
                         )}
                       />
                     </div>
-
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                      {/* State */}
                       <FormField
                         control={form.control}
                         name="state"
@@ -717,8 +685,6 @@ function CheckoutPageContent() {
                           </FormItem>
                         )}
                       />
-
-                      {/* City */}
                       <FormField
                         control={form.control}
                         name="city"
@@ -769,9 +735,7 @@ function CheckoutPageContent() {
                         )}
                       />
                     </div>
-
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                      {/* Postcode */}
                       <FormField
                         control={form.control}
                         name="postcode"
@@ -787,8 +751,6 @@ function CheckoutPageContent() {
                           </FormItem>
                         )}
                       />
-
-                      {/* Country */}
                       <FormField
                         control={form.control}
                         name="country"
@@ -835,7 +797,6 @@ function CheckoutPageContent() {
                     </p>
                   )}
                 </div>
-
                 <button
                   type="submit"
                   disabled={submitting || isCalculating || !selectedServiceId}

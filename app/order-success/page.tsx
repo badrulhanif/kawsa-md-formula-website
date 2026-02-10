@@ -1,6 +1,8 @@
 "use client";
+
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+
 import { useCart } from "@/components/store/Cart";
 import { useCheckout } from "@/components/store/Checkout";
 import { OrderSuccessBody } from "@/types";
@@ -25,8 +27,12 @@ export default function OrderSuccessPage() {
     const fetchOrder = async () => {
       try {
         const response = await fetch(
-          `/api/get-orders?orderNumber=${orderNumber}`
+          `/api/get-orders?orderNumber=${orderNumber}`,
         );
+        if (!response.ok) {
+          console.error("Order fetch failed:", response.status);
+          return;
+        }
         const data = await response.json();
         setOrder(data);
         if (data.awbNumber && intervalRef.current) {
@@ -85,7 +91,7 @@ export default function OrderSuccessPage() {
               Order Summary
             </h2>
             <div className="flex flex-col gap-4 sm:gap-8">
-              {order.order_items.map((item) => (
+              {(order.order_items ?? []).map((item) => (
                 <div key={item.id} className="flex gap-4 items-start">
                   <div className="relative shrink-0 w-32 h-32 rounded-xl sm:rounded-2xl overflow-hidden">
                     <Image
