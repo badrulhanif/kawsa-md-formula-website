@@ -335,16 +335,11 @@ function CheckoutPageContent() {
         })),
       };
 
-      console.log("=== SUBMITTING ORDER ===");
-      console.log("Payload:", JSON.stringify(payload, null, 2));
-
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      console.log("Response status:", response.status);
 
       let data: { error?: string; checkout_url?: string; orderNumber?: string };
       try {
@@ -354,8 +349,6 @@ function CheckoutPageContent() {
         console.error("Non-JSON response:", text);
         throw new Error("Server error. Please try again.");
       }
-
-      console.log("Response data:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Order creation failed");
@@ -499,6 +492,7 @@ function CheckoutPageContent() {
                       </FormItem>
                     )}
                   />
+
                   {/* PhoneNumber */}
                   <div className="space-y-1 flex-1">
                     <h2
@@ -593,6 +587,7 @@ function CheckoutPageContent() {
                     )}
                   </div>
                 </div>
+
                 {/* Address */}
                 <div className="space-y-1 flex-1">
                   <h2

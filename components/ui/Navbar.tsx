@@ -26,8 +26,8 @@ export default function Navbar() {
     state.items.reduce(
       (sum, item) =>
         sum + (item.currentPrice ?? item.unitPrice) * item.quantity,
-      0
-    )
+      0,
+    ),
   );
   const [mounted, setMounted] = useState(false);
   const startSwipe = useCart((s) => s.startSwipe);
@@ -92,7 +92,7 @@ export default function Navbar() {
         // ? "text-white bg-violet-600"
         !(isHome || isWhatCustomersSay)
           ? "text-black bg-white"
-          : "text-white bg-transparent"
+          : "text-white bg-transparent",
       )}
     >
       <button
@@ -131,7 +131,7 @@ export default function Navbar() {
             "absolute top-full left-1/2 -translate-x-1/2 p-4 w-[94vw] max-w-[2400px] h-fit shadow-md rounded-2xl sm:rounded-4xl overflow-hidden backdrop-blur-2xl text-black bg-violet-100/80 transform transition-all duration-300 origin-top",
             openMenu
               ? "opacity-100 scale-y-100 pointer-events-auto"
-              : "opacity-0 scale-y-0 pointer-events-none"
+              : "opacity-0 scale-y-0 pointer-events-none",
           )}
         >
           <div className="flex flex-col gap-4">
@@ -154,7 +154,7 @@ export default function Navbar() {
           ref={cartRef}
           className={clsx(
             "absolute top-0 right-0 z-50 p-4 sm:p-8 w-full sm:w-[30vw] h-dvh transform transition-transform duration-300 shadow-md backdrop-blur-2xl text-violet-600 bg-white",
-            openCart ? "translate-x-0" : "translate-x-full"
+            openCart ? "translate-x-0" : "translate-x-full",
           )}
         >
           <div className="relative flex flex-col gap-4 sm:gap-8 w-full h-full overflow-hidden">
@@ -185,7 +185,7 @@ export default function Navbar() {
                       <div
                         className={clsx(
                           "relative flex z-10 w-full items-start gap-4 bg-white p-2 transition-transform duration-200",
-                          item.swiped && "sm:translate-x-0 -translate-x-24"
+                          item.swiped && "sm:translate-x-0 -translate-x-24",
                         )}
                         data-swipe-item
                         onTouchStart={(e) =>
