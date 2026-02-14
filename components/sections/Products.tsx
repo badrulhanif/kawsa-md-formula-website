@@ -24,7 +24,7 @@ export default function ProductsSection() {
           )
         )
       )
-      .catch((error) => {
+      .catch(() => {
       });
   }, []);
 

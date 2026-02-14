@@ -21,7 +21,7 @@ export default function ShopOurProductsPage() {
           ),
         ),
       )
-      .catch((error) => {});
+      .catch(() => {});
   }, []);
 
   return (

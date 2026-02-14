@@ -344,7 +344,7 @@ function CheckoutPageContent() {
       try {
         data = await response.json();
       } catch {
-        const text = await response.text();
+        await response.text();
         throw new Error("Server error. Please try again.");
       }
 
